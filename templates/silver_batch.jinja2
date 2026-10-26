@@ -1,0 +1,18 @@
+# Job {{ job_name }} generated at {{ now() }} UTC
+# Do not modify in production!
+
+from pyspark.sql import SparkSession, Window, functions as F
+
+spark = SparkSession.builder.appName("{{ job_name }}").getOrCreate()
+
+source = "{{ job.source_table }}"
+sink = "{{ job.sink_table }}"
+
+df = spark.read.table(source)
+{% if job.key_column is defined %}
+w = Window.partitionBy("{{ job.key_column }}").orderBy(
+    F.col("{{ job.time_column }}").{{ "desc" if job.sorting_order | default("DESC") == "DESC" else "asc" }}()
+)
+df = df.withColumn("_rn", F.row_number().over(w)).filter("_rn = 1").drop("_rn")
+{% endif %}
+df.write.mode("{{ job.write_mode | default('overwrite') }}").saveAsTable(sink)

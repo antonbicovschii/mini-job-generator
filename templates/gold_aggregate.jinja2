@@ -1,0 +1,14 @@
+# Job {{ job_name }} generated at {{ now() }} UTC
+# Do not modify in production!
+
+from pyspark.sql import SparkSession, functions as F
+
+spark = SparkSession.builder.appName("{{ job_name }}").getOrCreate()
+
+df = spark.read.table("{{ job.source_table }}")
+
+result = df.groupBy({% for c in job.group_by %}"{{ c }}"{% if not loop.last %}, {% endif %}{% endfor %}).agg(
+    F.sum("{{ job.sum_column }}").alias("Total{{ job.sum_column }}")
+)
+
+result.write.mode("overwrite").saveAsTable("{{ job.sink_table }}")
