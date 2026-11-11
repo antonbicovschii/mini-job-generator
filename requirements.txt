@@ -1,3 +1,1 @@
-pytest
-pyspark
-delta-spark
+祰整瑳瀊獹慰歲搊汥慴猭慰歲ਊ
